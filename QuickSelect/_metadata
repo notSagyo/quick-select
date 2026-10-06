@@ -1,0 +1,10 @@
+{
+  "author" : "Sagyo",
+  "description" : "[h1]Quick Select[/h1]\nAdds a hotkey to quickly pick what you're looking at, from your own inventory similarly to an eyedropper. Doesn't move the items in your inventory or split stacks, it just instantly moves what's under your cursor to your action bar and selects it. If it's already there, just selects it.\n\n[h2]Hotkey[/h2]\nDefault is [b]\"V\"[/b]. Although I suggest setting it to something like [b]\"Q\"[/b]. Didn't set that as the default just because that's normally the drop item key.\n\n[h2]Compatibility[/h2]\n[b][u]This mod requires [url=https://github.com/OpenStarbound/OpenStarbound]OpenStarbound[/url] in order to function.[/u][/b]\n\nMay not be compatible with mods that modify the inventory system (not just its appearance) nothing should [b]break[/b] though. But... I made out-of-the-box patches for the following mods:\n\n- [url=https://steamcommunity.com/sharedfiles/filedetails/?id=882900100]bk3k's Inventory[/url], any version.\n- [url=http://steamcommunity.com/sharedfiles/filedetails/?id=853665529]Bigger Action Bar[/url], any version.\n- If it doesn't work with some mod you really like I'll give it a shot.\n\n[h2]Planned[/h2]\n- Liquids are [i]currently[/i] not supported.\n- Support for alt-hand. Items like torches currently go into a new slot even if the secondary hand is available.\n- Maybe change which slot is automatically selected under certain circumstances.\n\nWill implement these soon. Probably...\n\n[h2]Uninstall!!!??[/h2]\n- Unsubscribe, done. \n- No lingering garbage.\n\nHere's the [url=https://github.com/notSagyo/quick-select]GitHub repo[/url]. It's under MIT license, so do whatever you want with it.",
+  "friendlyName" : "[oSB] Quick Select",
+  "link" : "steam://url/CommunityFilePage/3814429020",
+  "name" : "quickselect",
+  "steamContentId" : "3814429020",
+  "tags" : "Crafting and Building|Miscellaneous|User Interface|Character Improvements|In-Game Tools|Mechanics",
+  "version" : "1.0"
+}
