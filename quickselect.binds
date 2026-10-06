@@ -1,0 +1,17 @@
+{
+  "QuickSelect": {
+    "name": "Quick Select",
+    "bannerName": "Quick Select",
+    "binds": {
+      "quickSelect": {
+        "default": [
+          {
+            "type": "key",
+            "value": "V"
+          }
+        ],
+        "name": "Quick Select"
+      }
+    }
+  }
+}
