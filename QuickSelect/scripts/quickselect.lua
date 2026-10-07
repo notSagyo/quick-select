@@ -6,22 +6,7 @@ local SELECTION_CHECK_INTERVAL = 0.05
 local lastHotbarSlot
 local slotCheckTimer = 0
 
-local inventoryBags = {
-  -- Vanilla
-  "mainBag",
-  "materialBag",
-  "objectBag",
-  "reagentBag",
-  "foodBag",
-
-  -- Support for: bk3k's Inventory
-  -- https://steamcommunity.com/sharedfiles/filedetails/?id=882900100
-  "armoryBag",
-  "objectBag2",
-  "farmBag",
-  "hobbyBag",
-  "vehicleBag"
-}
+local inventoryBags = {}
 
 local function safeCall(name, fn, ...)
   if type(fn) ~= "function" then
@@ -37,6 +22,20 @@ local function safeCall(name, fn, ...)
   end
 
   return true, result
+end
+
+-- Check for all bags instead of hardcoding vanilla ones.
+-- Supported example mod: bk3k's Inventory
+-- https://steamcommunity.com/sharedfiles/filedetails/?id=882900100
+local function getInventoryBags()
+  local bags = root.assetJson("/player.config").inventory.itemBags
+  local names = {}
+
+  for name in pairs(bags) do
+    names[#names + 1] = name
+  end
+
+  return names
 end
 
 local function isSameItem(a, b)
@@ -295,5 +294,13 @@ function update(dt)
 end
 
 function init()
-  sb.logInfo("[QuickSelect] LOADED")
+  local ok, bags = safeCall("getInventoryBags", getInventoryBags)
+
+  if not ok then
+    return
+  end
+
+  inventoryBags = bags
+
+  sb.logInfo("[QuickSelect] LOADED (%s inventory bags)", #inventoryBags)
 end
