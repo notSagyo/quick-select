@@ -3,6 +3,9 @@
 local HOTBAR_SIZE = 20
 local SELECTION_CHECK_INTERVAL = 0.05
 
+local ogInit = init
+local ogUpdate = update
+
 local lastHotbarSlot
 local slotCheckTimer = 0
 
@@ -279,9 +282,11 @@ local function rememberSelectedSlot()
   end
 end
 
-function update(dt)
+
+
+function update(dt, ...)
   -- Throttle the last slot checks, probably had negligible impact, but oh well...
-  slotCheckTimer = slotCheckTimer - dt
+  slotCheckTimer = slotCheckTimer - (dt or 0)
 
   if slotCheckTimer <= 0 then
     slotCheckTimer = SELECTION_CHECK_INTERVAL
@@ -291,9 +296,13 @@ function update(dt)
   if input.bindDown("QuickSelect", "quickSelect") then
     quickSelect()
   end
+
+  if ogUpdate then
+    ogUpdate(dt, ...)
+  end
 end
 
-function init()
+function init(...)
   local ok, bags = safeCall("getInventoryBags", getInventoryBags)
 
   if not ok then
@@ -303,4 +312,8 @@ function init()
   inventoryBags = bags
 
   sb.logInfo("[QuickSelect] LOADED (%s inventory bags)", #inventoryBags)
+
+  if ogInit then
+    ogInit(...)
+  end
 end
