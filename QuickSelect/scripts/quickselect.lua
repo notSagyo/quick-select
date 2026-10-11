@@ -1,10 +1,10 @@
+require "/scripts/smart.lua"
+local smartModule = quickselectSmart
+
 -- Support for vanilla and up to 20 slots for: Bigger Action Bar(20 slots)
 -- http://steamcommunity.com/sharedfiles/filedetails/?id=853665529
 local HOTBAR_SIZE = 20
 local SELECTION_CHECK_INTERVAL = 0.05
-
-local ogInit = init
-local ogUpdate = update
 
 local lastHotbarSlot
 local slotCheckTimer = 0
@@ -226,7 +226,7 @@ local function setHotbarLink(hotbarSlot, inventorySlot)
   return selectHotbarSlot(hotbarSlot)
 end
 
-local function quickSelect()
+local function quickSelect(smartMode)
   local targetItem = resolveTargetItem()
 
   -- Nothing to select
@@ -252,11 +252,11 @@ local function quickSelect()
     return
   end
 
-  -- Prefer setting the current selected slot (if empty)
-  local selected = getSelectedHotbarSlot()
+  -- Prefer setting the currently selected slot (if empty)
+  local selectedSlot = getSelectedHotbarSlot()
 
-  if selected and not getHotbarItemAt(selected) then
-    if setHotbarLink(selected, inventorySlot) then
+  if selectedSlot and not getHotbarItemAt(selectedSlot) then
+    if setHotbarLink(selectedSlot, inventorySlot) then
       return
     end
   end
@@ -268,7 +268,21 @@ local function quickSelect()
     return
   end
 
-  -- All slots occupied, use the previously selected slot
+  -- Smart mode applies custom priority to determine which slot to replace
+  if smartMode then
+    local smartSlot = smartModule.findHotbarSlot(
+      targetItem,
+      HOTBAR_SIZE,
+      getHotbarItemAt,
+      selectedSlot
+    )
+
+    if smartSlot and setHotbarLink(smartSlot, inventorySlot) then
+      return
+    end
+  end
+
+  -- All slots occupied, use the previously user selected slot
   if lastHotbarSlot then
     setHotbarLink(lastHotbarSlot, inventorySlot)
   end
@@ -282,9 +296,7 @@ local function rememberSelectedSlot()
   end
 end
 
-
-
-function update(dt, ...)
+function update(dt)
   -- Throttle the last slot checks, probably had negligible impact, but oh well...
   slotCheckTimer = slotCheckTimer - (dt or 0)
 
@@ -297,12 +309,12 @@ function update(dt, ...)
     quickSelect()
   end
 
-  if ogUpdate then
-    ogUpdate(dt, ...)
+  if input.bindDown("QuickSelect", "smartQuickSelect") then
+    quickSelect(true)
   end
 end
 
-function init(...)
+function init()
   local ok, bags = safeCall("getInventoryBags", getInventoryBags)
 
   if not ok then
@@ -312,8 +324,4 @@ function init(...)
   inventoryBags = bags
 
   sb.logInfo("[QuickSelect] LOADED (%s inventory bags)", #inventoryBags)
-
-  if ogInit then
-    ogInit(...)
-  end
 end

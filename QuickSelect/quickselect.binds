@@ -7,10 +7,19 @@
         "default": [
           {
             "type": "key",
-            "value": "V"
+            "value": ""
           }
         ],
         "name": "Quick Select"
+      },
+      "smartQuickSelect": {
+        "default": [
+          {
+            "type": "key",
+            "value": "V"
+          }
+        ],
+        "name": "Smart Quick Select"
       }
     }
   }
