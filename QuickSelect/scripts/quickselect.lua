@@ -10,7 +10,10 @@ local lastHotbarSlot
 local slotCheckTimer = 0
 
 local inventoryBags = {}
+local defaultMaxStack = 1
 
+-- Could prevent crashing vanilla clients, or if oSB decides to break retrocompatibility in the future.
+-- Probably shouldn't be called in loops or very hot paths.
 local function safeCall(name, fn, ...)
   if type(fn) ~= "function" then
     sb.logError("[QuickSelect] MISSING API: %s", name)
@@ -27,14 +30,19 @@ local function safeCall(name, fn, ...)
   return true, result
 end
 
+
 -- Check for all bags instead of hardcoding vanilla ones.
 -- Supported example mod: bk3k's Inventory
 -- https://steamcommunity.com/sharedfiles/filedetails/?id=882900100
 local function getInventoryBags()
-  local bags = root.assetJson("/player.config").inventory.itemBags
+  local ok, playerConfig = safeCall("root.assetJson", root.assetJson, "/player.config")
   local names = {}
 
-  for name in pairs(bags) do
+  if not ok then
+    return {}
+  end
+
+  for name in pairs(playerConfig.inventory.itemBags) do
     names[#names + 1] = name
   end
 
@@ -226,7 +234,9 @@ local function setHotbarLink(hotbarSlot, inventorySlot)
   return selectHotbarSlot(hotbarSlot)
 end
 
-local function quickSelect(smartMode)
+-- Added second parameter to prevent infinite recursion in cases such as:
+-- admin mode, no stock, create item, full inventory, item drops on floor, never selected, repeat
+local function quickSelect(smartMode, didCreateItem)
   local targetItem = resolveTargetItem()
 
   -- Nothing to select
@@ -246,10 +256,21 @@ local function quickSelect(smartMode)
   -- Find in inventory
   local inventorySlot = findItemInInventory(targetItem)
 
-  -- Not present on inventory, deselect
+  -- Not present on inventory, deselect, or give a stack if on admin mode
   if not inventorySlot then
-    clearItemInHand()
-    return
+    if not player.isAdmin() then
+      clearItemInHand()
+      return
+    else
+      if (not didCreateItem) then
+        local _, itemCfg = safeCall("root.itemConfig", root.itemConfig, targetItem.name)
+        local maxStack = itemCfg and itemCfg.config and itemCfg.config.maxStack or defaultMaxStack
+
+        player.giveItem({ name = targetItem.name, count = maxStack })
+        quickSelect(smartMode, true)
+        return
+      end
+    end
   end
 
   -- Prefer setting the currently selected slot (if empty)
@@ -298,7 +319,7 @@ end
 
 function update(dt)
   -- Throttle the last slot checks, probably had negligible impact, but oh well...
-  slotCheckTimer = slotCheckTimer - (dt or 0)
+  slotCheckTimer = slotCheckTimer - dt
 
   if slotCheckTimer <= 0 then
     slotCheckTimer = SELECTION_CHECK_INTERVAL
@@ -315,13 +336,15 @@ function update(dt)
 end
 
 function init()
-  local ok, bags = safeCall("getInventoryBags", getInventoryBags)
+  inventoryBags = getInventoryBags()
 
-  if not ok then
+  local _, defaultItemParameters = safeCall("root.assetJson", root.assetJson, "/items/defaultParameters.config")
+  defaultMaxStack = defaultItemParameters and defaultItemParameters.defaultMaxStack or 1
+
+  if #inventoryBags == 0 then
+    sb.logError("[QuickSelect] Error reading inventory bags. Aborting.")
     return
   end
-
-  inventoryBags = bags
 
   sb.logInfo("[QuickSelect] LOADED (%s inventory bags)", #inventoryBags)
 end
